@@ -1,6 +1,7 @@
 FROM thspacecode/erpnext-docker:version-16-latest
 
 USER root
+RUN chmod o+x /home/frappe
 
 RUN apt-get update \
     && apt-get install -y -q \
@@ -29,6 +30,20 @@ RUN apt-get update \
     && rm -rf /tmp/*
 
 # copy built_sites from sites
+USER frappe
+
+WORKDIR /home/frappe/frappe-bench
+
+RUN bench get-app \
+    --branch version-16 \
+    hrms https://github.com/frappe/hrms
+
+# Install the original nepalidate and nepal_compliance
+# repositories here, using compatible versions.
+
+RUN bench build --force
+
+USER root
 RUN mkdir -p /home/frappe/frappe-bench/built_sites \
     && cp -r /home/frappe/frappe-bench/sites/assets /home/frappe/frappe-bench/built_sites/assets \
     && cp /home/frappe/frappe-bench/sites/apps.json /home/frappe/frappe-bench/built_sites/apps.json \
